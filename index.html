@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Coaching AI Assistant</title>
+    <!-- On GitHub Pages, 'assets' is a directory in the root -->
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension/lib/index.umd.js"></script>
+</head>
+<body>
+    <main class="app">
+        <header class="topbar">
+            <div>
+                <div class="eyebrow">AI STUDENT ASSISTANT</div>
+                <h1>Loading...</h1>
+            </div>
+            <!-- The admin panel lives on the PythonAnywhere backend -->
+            <a class="admin-link" href="https://navneetyadavcode.pythonanywhere.com/admin/login">Admin</a>
+        </header>
+        <section class="chat-shell">
+            <div id="messages" class="messages">
+                <div class="bubble ai">
+                    <div class="avatar">AI</div>
+                    <div>
+                        <p>Connecting to backend...</p>
+                    </div>
+                </div>
+            </div>
+            <form id="chatForm" class="composer">
+                <textarea id="message" maxlength="2000" rows="1" placeholder="Ask about the institute or a subject…" required></textarea>
+                <button id="send" type="submit">Send <span>↗</span></button>
+            </form>
+            <div class="hint">Institute answers come from the institute knowledge base. Academic answers use AI only for enabled subjects.</div>
+        </section>
+    </main>
+    <script src="assets/app.js"></script>
+</body>
+</html>

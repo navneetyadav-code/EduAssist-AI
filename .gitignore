@@ -1,0 +1,22 @@
+# PHP leftovers (no longer needed but safe to keep)
+# /config/config.php
+
+# Logs & OS files
+*.log
+.DS_Store
+
+# Python ignores
+__pycache__/
+*.py[cod]
+*.class
+.venv/
+venv/
+env/
+
+# Secrets — NEVER commit this file
+.env
+
+# SQLite database — each environment keeps its own copy
+database/database.db
+*.db-wal
+*.db-shm

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Dashboard — Coaching AI</title>
+    <link rel="stylesheet" href="/assets/admin_style.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="eyebrow">Admin Panel</div>
+            <h1>Coaching AI</h1>
+        </div>
+        <nav>
+            <a href="?tab=chats" class="nav-link {{ 'active' if tab == 'chats' else '' }}">
+                <span class="icon">💬</span> Chat Logs
+            </a>
+            <a href="?tab=knowledge" class="nav-link {{ 'active' if tab == 'knowledge' else '' }}">
+                <span class="icon">📚</span> Knowledge Base
+            </a>
+            <a href="?tab=subjects" class="nav-link {{ 'active' if tab == 'subjects' else '' }}">
+                <span class="icon">📖</span> Allowed Subjects
+            </a>
+            <a href="?tab=settings" class="nav-link {{ 'active' if tab == 'settings' else '' }}">
+                <span class="icon">⚙️</span> Settings & Security
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="/">← Back to Chatbot</a>
+            <a href="{{ url_for('admin.logout') }}">Sign out</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-area">
+        <header class="top-header">
+            <h2>
+                {% if tab == 'chats' %}Student Chat Logs
+                {% elif tab == 'knowledge' %}Knowledge Base
+                {% elif tab == 'subjects' %}Subject Management
+                {% elif tab == 'settings' %}Settings & Security
+                {% endif %}
+            </h2>
+        </header>
+
+        <div class="content-wrapper">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <!-- If no category is passed, default to success -->
+                  <div class="flash {{ category if category != 'message' else 'success' }}">
+                      {{ message }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            {% if tab == 'chats' %}
+            <!-- TAB: CHAT LOGS -->
+            <div class="card" style="padding: 0;">
+                <div class="card-header" style="padding: 24px 24px 0; border: 0;">
+                    <h3>Recent Conversations (Last 200 messages)</h3>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="chat-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">Time & Route</th>
+                                <th width="85%">Conversation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in chats %}
+                            <tr>
+                                <td>
+                                    <div style="margin-bottom: 8px; color: #111827;">{{ c.created_at.strftime('%b %d, %H:%M') }}</div>
+                                    <span class="route-badge {{ c.route }}">{{ c.route }}</span>
+                                    {% if c.intent %}<div style="margin-top: 4px; font-size: 11px; color: #6b7280;">Intent: {{ c.intent }}</div>{% endif %}
+                                </td>
+                                <td>
+                                    <div class="chat-msg"><b>Student:</b> {{ c.student_message }}</div>
+                                    <div class="chat-answer"><b>AI:</b> {{ c.answer[:250] ~ '...' if c.answer|length > 250 else c.answer }}</div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="2" style="text-align: center; padding: 40px; color: #6b7280;">No chats recorded yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {% elif tab == 'knowledge' %}
+            <!-- TAB: KNOWLEDGE BASE -->
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>{{ 'Edit Article' if edit else 'Add New Article' }}</h3>
+                    </div>
+                    <form method="post" action="{{ url_for('admin.index', tab='knowledge') }}">
+                        <input type="hidden" name="action" value="knowledge_save">
+                        <input type="hidden" name="id" value="{{ edit.id if edit else '' }}">
+                        
+                        <label>Article Title
+                            <input name="title" placeholder="e.g. Admission Process" required value="{{ edit.title if edit else '' }}">
+                        </label>
+                        <label>Category
+                            <input name="category" placeholder="e.g. Admissions" value="{{ edit.category if edit else 'general' }}">
+                        </label>
+                        <label>Full Content (Rule/Information)
+                            <textarea name="content" rows="10" placeholder="Explain the rules clearly here..." required>{{ edit.content if edit else '' }}</textarea>
+                        </label>
+                        <div style="display: flex; gap: 12px; margin-top: 24px;">
+                            <button type="submit" class="btn">Save Article</button>
+                            {% if edit %}
+                                <a class="btn btn-secondary" href="{{ url_for('admin.index', tab='knowledge') }}">Cancel</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+                
+                <div>
+                    <div class="card-header" style="margin-bottom: 12px; padding-bottom: 8px;">
+                        <h3>Active Knowledge Base ({{ knowledge|length }} items)</h3>
+                    </div>
+                    <div class="item-list">
+                        {% for k in knowledge %}
+                        <div class="item">
+                            <div class="item-content">
+                                <div class="item-meta">
+                                    <span class="badge">{{ k.category }}</span>
+                                    <span>Updated {{ k.updated_at.strftime('%b %d') }}</span>
+                                </div>
+                                <h4>{{ k.title }}</h4>
+                                <p>{{ k.content[:100] ~ '…' if k.content|length > 100 else k.content }}</p>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <a href="{{ url_for('admin.index', tab='knowledge', edit=k.id) }}" class="btn btn-secondary" style="padding: 6px 12px;">Edit</a>
+                                <form method="post" action="{{ url_for('admin.index', tab='knowledge') }}" style="margin:0;">
+                                    <input type="hidden" name="action" value="knowledge_delete">
+                                    <input type="hidden" name="id" value="{{ k.id }}">
+                                    <button class="btn btn-danger" style="padding: 6px 12px;" onclick="return confirm('Delete this article?');">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div style="padding: 40px; text-align: center; color: #6b7280; background: #fff;">Knowledge base is empty.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {% elif tab == 'subjects' %}
+            <!-- TAB: SUBJECTS -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Add Academic Subject</h3>
+                </div>
+                <form method="post" action="{{ url_for('admin.index', tab='subjects') }}" class="inline-form">
+                    <input type="hidden" name="action" value="subject_save">
+                    <label>Subject Name
+                        <input name="name" placeholder="e.g. Physics" required>
+                    </label>
+                    <label>Class Level
+                        <input name="class_level" placeholder="e.g. 11-12">
+                    </label>
+                    <label>Short Description
+                        <input name="description" placeholder="Optional notes">
+                    </label>
+                    <button type="submit" class="btn" style="margin-bottom: 6px;">Add Subject</button>
+                </form>
+            </div>
+
+            <div class="item-list">
+                {% for s in subjects %}
+                <div class="item">
+                    <div class="item-content">
+                        <h4>{{ s.name }}</h4>
+                        <p>Classes: {{ s.class_level or 'All' }} | {{ s.description or '' }}</p>
+                    </div>
+                    <form method="post" action="{{ url_for('admin.index', tab='subjects') }}" style="margin:0;">
+                        <input type="hidden" name="action" value="subject_delete">
+                        <input type="hidden" name="id" value="{{ s.id }}">
+                        <button class="btn btn-danger" onclick="return confirm('Delete {{ s.name }}?');">Remove</button>
+                    </form>
+                </div>
+                {% else %}
+                <div style="padding: 40px; text-align: center; color: #6b7280; background: #fff;">No subjects allowed yet.</div>
+                {% endfor %}
+            </div>
+
+            {% elif tab == 'settings' %}
+            <!-- TAB: SETTINGS -->
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Bot Configuration</h3>
+                    </div>
+                    {% for s in settings %}
+                    <form method="post" action="{{ url_for('admin.index', tab='settings') }}" style="margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--line);">
+                        <input type="hidden" name="action" value="setting_save">
+                        <input type="hidden" name="key" value="{{ s.setting_key }}">
+                        <label style="text-transform: capitalize;">{{ s.setting_key | replace('_', ' ') }}
+                            <textarea name="value" rows="3">{{ s.setting_value }}</textarea>
+                        </label>
+                        <button type="submit" class="btn btn-secondary">Update Setting</button>
+                    </form>
+                    {% endfor %}
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Security</h3>
+                    </div>
+                    <form method="post" action="{{ url_for('admin.index', tab='settings') }}">
+                        <input type="hidden" name="action" value="password_save">
+                        <label>Current Password
+                            <input type="password" name="old_password" required>
+                        </label>
+                        <label>New Password (min 10 chars)
+                            <input type="password" name="new_password" minlength="10" required>
+                        </label>
+                        <button type="submit" class="btn" style="margin-top: 8px;">Change Password</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </main>
+</body>
+</html>
