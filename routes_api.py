@@ -126,26 +126,20 @@ def chat():
         return jsonify({'success': False, 'message': str(e) if current_app.debug else 'Something went wrong. Please try again.'}), 500
 
 def route_question(message):
-    history_chats = Chat.query.filter_by(session_id=session_id_value()).order_by(Chat.id.desc()).limit(4).all()
+    history_chats = Chat.query.filter_by(session_id=session_id_value()).filter(Chat.route != 'blocked').order_by(Chat.id.desc()).limit(4).all()
     history = [{'student_message': c.student_message, 'answer': c.answer} for c in reversed(history_chats)]
 
     # Pre-filter for simple greetings/thanks
     normalized = re.sub(r'[^\w\s]', '', message.lower()).strip()
     words = [w for w in normalized.split() if w]
     
-    if 0 < len(words) <= 3:
-        is_greeting = True
-        is_thanks = True
-        greeting_whitelist = {'hi','hello','hey','namaste','pranam','good','morning','afternoon','evening','sir','maam','madam','teacher','there'}
-        thanks_whitelist = {'thanks','thank','you','ok','okay','great','awesome','nice','dhanyawad','shukriya','sir','maam','madam','teacher','very','much'}
-        
-        for w in words:
-            if w not in greeting_whitelist: is_greeting = False
-            if w not in thanks_whitelist: is_thanks = False
+    if 0 < len(words) <= 4:
+        is_greeting = bool(re.match(r'^(hi+|hello+|hey+|namaste|pranam|good|morning|afternoon|evening)(\s+.*)?$', normalized))
+        is_thanks = bool(re.match(r'^(thanks+|thank|you|ok+|okay|great|awesome|nice|dhanyawad|shukriya)(\s+.*)?$', normalized))
             
-        if is_greeting and any(w in {'hi','hello','hey','namaste','pranam','morning','afternoon','evening'} for w in words):
+        if is_greeting and not is_thanks:
             return {'route': 'greeting', 'intent': 'greeting', 'answer': "Hello! Welcome to our institute. How can I help you today?"}
-        if is_thanks and any(w in {'thanks','thank','ok','okay','dhanyawad','shukriya'} for w in words):
+        if is_thanks:
             return {'route': 'greeting', 'intent': 'thanks', 'answer': "You're very welcome! Let me know if you need help with anything else."}
 
     subjects_db = Subject.query.filter_by(is_active=True).order_by(Subject.name).all()
@@ -184,18 +178,18 @@ def router_prompt(message, subjects, history):
 Return ONLY valid JSON. Do not use markdown.
 
 Your job is to classify the student's message into exactly one type:
-- institute: questions about this institute, including fees, admission, teachers, batches, timetable, address, contact, rules, facilities, holidays, courses, policies, or anything that asks for institute-specific information.
+- institute: questions about this institute, including courses, subjects offered, fees, admission, batches, address, developer/creator, or anything asking for institute-specific information.
 - subject: an academic question about one of the explicitly allowed subjects below.
-- other: anything else.
+- other: completely unrelated out-of-scope topics.
 
 Allowed subjects:
 {subjects}
 
-Understand spelling mistakes, Hinglish, Hindi written in Latin script, abbreviations, and informal language.
+Understand spelling mistakes, abbreviations, and informal language.
 Examples:
 "10th ka fee kitna hai" => institute, intent fee, class_level 10
-"sir 10 ka kitna lagega" => institute, intent fee, class_level 10
-"admisn kaise lena h" => institute, intent admission
+"what subject" => institute, intent courses
+"who is your developer" => institute, intent developer_inquiry
 "what is photosynthesis" => subject if Biology is allowed
 "who is the president" => other unless that is explicitly institute information
 
@@ -231,6 +225,7 @@ def institute_answer(message, router, history):
     
     sys_prompt = f"""You are the friendly, helpful counselor for {institute_name} (located in Chapra, Bihar).
 Be warm, encouraging, and highly professional. Answer the student's question using ONLY the supplied institute records below.
+Note: If a student asks about "subjects", they are asking about the "Courses Offered".
 Do not add, guess, or infer any institute fact that is not explicitly present.
 If the records do not contain the answer, politely say you do not have that information and advise contacting the institute office.
 Be concise and natural. Match the student's language when practical.

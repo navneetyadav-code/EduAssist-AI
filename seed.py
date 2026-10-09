@@ -14,19 +14,19 @@ with app.app_context():
 
     # 3. Add default settings
     default_settings = {
-        'institute_name': 'Aadi Shree Classes',
-        'welcome_message': 'Welcome to Aadi Shree Classes! I am the AI Student Assistant developed by Navneet Kumar Yadav. How can I help you today?',
-        'fallback_message': 'I could not find that information in my knowledge base. Please contact the Aadi Shree Classes office directly.',
-        'out_of_scope_message': 'Sorry, I can only help with information related to Aadi Shree Classes and the subjects taught here.'
+        'institute_name': 'EduAssist AI',
+        'welcome_message': 'Welcome to EduAssist AI! I am the AI Student Assistant developed by Navneet Kumar Yadav. How can I help you today?',
+        'fallback_message': 'I could not find that information in my knowledge base. Please contact the EduAssist AI office directly.',
+        'out_of_scope_message': 'Sorry, I can only help with information related to EduAssist AI and the subjects taught here.'
     }
     for key, value in default_settings.items():
         s = db.session.get(Setting, key)
         if not s:
             db.session.add(Setting(setting_key=key, setting_value=value))
         else:
-            # Force update the name to Aadi Shree Classes if they already ran the seed script previously
-            if key == 'institute_name' and s.setting_value == 'Your Coaching Institute':
-                s.setting_value = 'Aadi Shree Classes'
+            # Force update the name to EduAssist AI if they already ran the seed script previously
+            if key == 'institute_name' and s.setting_value in ['Your Coaching Institute', 'Aadi Shree Classes']:
+                s.setting_value = 'EduAssist AI'
 
     # 4. Add default subjects
     default_subjects = [
@@ -42,11 +42,11 @@ with app.app_context():
 
     # 5. Add default knowledge (25 Templates)
     default_knowledge = [
-        ('About Institute', 'general', 'Aadi Shree Classes is a premier educational institute dedicated to providing top-quality coaching for students from classes 9 to 12. We focus on conceptual clarity and board/competitive exam preparation.', 'about,institute,who are you'),
+        ('About Institute', 'general', 'EduAssist AI is a premier educational institute dedicated to providing top-quality coaching for students from classes 9 to 12. We focus on conceptual clarity and board/competitive exam preparation.', 'about,institute,who are you'),
         ('Developer Information', 'general', 'This AI Chatbot was proudly developed by Navneet Kumar Yadav, a B.Tech CSE (First Year) student. It uses a modern Decoupled Architecture and Retrieval-Augmented Generation (RAG) to assist students.', 'developer,who made this,creator,navneet,yadav'),
         ('Contact Number', 'contact', 'You can reach the administration desk at +91-9876543210 for any inquiries between 9 AM and 6 PM.', 'phone,number,contact,call'),
-        ('Address', 'contact', 'Aadi Shree Classes is located at [Insert Full Address Here]. We are easily accessible by public transport.', 'address,location,where,map'),
-        ('Email Address', 'contact', 'For official queries, you can email us at contact@aadishreeclasses.com', 'email,mail,id'),
+        ('Address', 'contact', 'EduAssist AI is located at [Insert Full Address Here]. We are easily accessible by public transport.', 'address,location,where,map'),
+        ('Email Address', 'contact', 'For official queries, you can email us at contact@eduassistai.com', 'email,mail,id'),
         ('Courses Offered', 'academic', 'We offer coaching for Classes 9 and 10 (All Subjects) and Classes 11 and 12 (Science Stream: PCM & PCB). We also prepare students for JEE and NEET.', 'courses,classes,what do you teach'),
         ('Fee Structure (Class 9 & 10)', 'fees', 'The annual fee for Class 9 and 10 is Rs. [Insert Amount] covering all core subjects. Fees can be paid in 3 installments.', 'fees class 9,fees class 10,cost'),
         ('Fee Structure (Class 11 & 12 PCM)', 'fees', 'The annual fee for Class 11 and 12 (Physics, Chemistry, Math) is Rs. [Insert Amount].', 'fees class 11,fees class 12,pcm fees'),
@@ -66,7 +66,7 @@ with app.app_context():
         ('Past Results', 'general', 'Last year, over 50 of our students cleared JEE Mains, and 20 cleared NEET with top ranks. We consistently produce district toppers in board exams.', 'results,achievements,toppers'),
         ('Vacation / Holidays', 'rules', 'The institute remains closed on all national holidays and during the Diwali week. A 15-day summer break is given in June.', 'holiday,vacation,diwali,summer'),
         ('Attendance Policy', 'rules', '75% attendance is compulsory. If a student is absent for 3 consecutive days without prior notice, parents will be called.', 'attendance,absent,leave'),
-        ('Dress Code', 'rules', 'Students must wear the Aadi Shree Classes ID card at all times. Decent casual wear is allowed; no uniforms are required.', 'dress,uniform,wear')
+        ('Dress Code', 'rules', 'Students must wear the EduAssist AI ID card at all times. Decent casual wear is allowed; no uniforms are required.', 'dress,uniform,wear')
     ]
     for title, cat, content, kw in default_knowledge:
         if not Knowledge.query.filter_by(title=title).first():
