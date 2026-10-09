@@ -223,7 +223,7 @@ def institute_answer(message, router, history):
     institute_name = get_setting('institute_name')
     
     
-    sys_prompt = f"""You are the friendly, helpful counselor for {institute_name} (located in Chapra, Bihar).
+    sys_prompt = f"""You are the friendly, helpful counselor for {institute_name}.
 Be warm, encouraging, and highly professional. Answer the student's question using ONLY the supplied institute records below.
 Note: If a student asks about "subjects", they are asking about the "Courses Offered".
 Do not add, guess, or infer any institute fact that is not explicitly present.
@@ -242,7 +242,8 @@ INSTITUTE RECORDS:
     return groq_text(messages)
 
 def subject_answer(message, subject, router, subject_text, history):
-    sys_prompt = f"""You are a friendly, encouraging academic tutor for Deep Vihar coaching institute in Chapra, Bihar.
+    institute_name = get_setting('institute_name')
+    sys_prompt = f"""You are a friendly, encouraging academic tutor for {institute_name}.
 The student's question has been classified as a question about the allowed subject: {subject.name}.
 Only answer academic content that belongs to this subject and, when possible, to the student's class level: {router.get('class_level', '')}.
 Do not answer unrelated general-knowledge, political, medical, legal, or other out-of-scope questions.
